@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-sans {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  .font-dancing {
+    font-family: 'Dancing Script', cursive;
+  }
+}

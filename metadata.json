@@ -1,0 +1,6 @@
+{
+  "name": "Birthday Surprise",
+  "description": "A personalized birthday surprise web app featuring countdown, gallery, memories, letter, and real-time live editor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
