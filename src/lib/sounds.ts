@@ -89,30 +89,12 @@ const HAPPY_BIRTHDAY_NOTES = [
 ];
 
 let synthLoopTimeout: any = null;
-let masterSynthGain: GainNode | null = null;
-let activeOscillators: OscillatorNode[] = [];
 
 export function stopHappyBirthdaySynth() {
   if (synthLoopTimeout) {
     clearTimeout(synthLoopTimeout);
     synthLoopTimeout = null;
   }
-
-  const ctx = getAudioContext();
-  if (ctx && masterSynthGain) {
-    try {
-      masterSynthGain.gain.cancelScheduledValues(ctx.currentTime);
-      masterSynthGain.gain.setValueAtTime(0, ctx.currentTime);
-    } catch (e) {}
-  }
-
-  activeOscillators.forEach(osc => {
-    try {
-      osc.stop();
-      osc.disconnect();
-    } catch (e) {}
-  });
-  activeOscillators = [];
 }
 
 export function playHappyBirthdaySynth(onComplete?: () => void) {
@@ -120,17 +102,7 @@ export function playHappyBirthdaySynth(onComplete?: () => void) {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  // Setup or reset master synth gain
-  if (!masterSynthGain) {
-    masterSynthGain = ctx.createGain();
-    masterSynthGain.connect(ctx.destination);
-  }
-  masterSynthGain.gain.cancelScheduledValues(ctx.currentTime);
-  masterSynthGain.gain.setValueAtTime(1, ctx.currentTime);
-
   let now = ctx.currentTime + 0.05;
-  activeOscillators = [];
-
   HAPPY_BIRTHDAY_NOTES.forEach(({ note, duration }) => {
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
@@ -143,12 +115,10 @@ export function playHappyBirthdaySynth(onComplete?: () => void) {
     gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration + 0.1);
 
     osc.connect(gainNode);
-    gainNode.connect(masterSynthGain!);
+    gainNode.connect(ctx.destination);
 
     osc.start(now);
     osc.stop(now + duration + 0.12);
-
-    activeOscillators.push(osc);
 
     now += duration + 0.05;
   });

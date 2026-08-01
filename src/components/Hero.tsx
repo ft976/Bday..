@@ -23,10 +23,16 @@ export function Hero() {
   };
 
   return (
-    <section id="hero" className="relative h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden px-6 pt-16">
+    <section className="relative h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden px-6">
+      <div className="absolute top-6 left-6 z-50">
+        <div className="w-12 h-12 rounded-2xl bg-white/80 backdrop-blur-md shadow-sm border border-stone-200/50 flex items-center justify-center text-rose-500">
+          <Heart size={24} fill="currentColor" />
+        </div>
+      </div>
+
       <motion.div 
         className="absolute inset-0 z-0"
-        initial={{ scale: 1.08 }}
+        initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 2, ease: "easeOut" }}
       >

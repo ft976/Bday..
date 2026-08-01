@@ -10,7 +10,7 @@ export function Letter() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <section id="letter" className="py-32 px-6 relative z-10 bg-stone-900 text-stone-100 overflow-hidden">
+    <section className="py-32 px-6 relative z-10 bg-stone-900 text-stone-100 overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-rose-900/20 blur-[100px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/20 blur-[100px]" />

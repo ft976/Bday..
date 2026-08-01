@@ -49,7 +49,7 @@ export function Countdown() {
   ];
 
   return (
-    <section id="countdown" className="py-20 px-6 relative z-10 bg-white border-y border-stone-100">
+    <section className="py-20 px-6 relative z-10 bg-white border-y border-stone-100">
       <div className="max-w-4xl mx-auto text-center">
         <motion.h2 
           className="font-serif text-3xl md:text-4xl mb-12 text-[#2d2824]"

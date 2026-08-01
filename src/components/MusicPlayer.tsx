@@ -36,57 +36,41 @@ export function MusicPlayer() {
     };
   }, []);
 
-  const playingRef = useRef(playing);
-  playingRef.current = playing;
-
   // Handle Play/Pause effect
   useEffect(() => {
     if (!mounted) return;
 
     if (playing) {
-      // If user provided a custom audio URL (uploaded file or direct link), prioritize it
-      if (musicConfig.customAudioUrl && audioRef.current) {
-        audioRef.current.play().catch(err => console.log('Audio play error:', err));
-        stopHappyBirthdaySynth();
-      } else if (musicConfig.youtubeVideoId) {
-        // Try YouTube player
-        if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        }
-        // Also start synth melody as fallback/complement if enabled
-        if (musicConfig.useSynthFallback !== false) {
-          const startSynthLoop = () => {
-            if (!playingRef.current) return;
-            playHappyBirthdaySynth(() => {
-              if (playingRef.current) startSynthLoop();
-            });
-          };
-          startSynthLoop();
-        }
-      } else {
-        // Fallback synth
-        const startSynthLoop = () => {
-          if (!playingRef.current) return;
-          playHappyBirthdaySynth(() => {
-            if (playingRef.current) startSynthLoop();
-          });
-        };
+      // 1. Try YouTube iframe command
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      }
+
+      // 2. Try Audio element if URL provided
+      if (audioRef.current && musicConfig.customAudioUrl) {
+        audioRef.current.play().catch(() => {});
+      }
+
+      // 3. Play synth melody box as guaranteed ambient backup
+      const startSynthLoop = () => {
+        playHappyBirthdaySynth(() => {
+          if (playing) startSynthLoop();
+        });
+      };
+      if (musicConfig.useSynthFallback !== false) {
         startSynthLoop();
       }
     } else {
-      // IMMEDIATELY pause and stop ALL audio sources
-      stopHappyBirthdaySynth();
-
+      // Pause YouTube
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      }
+      // Pause Audio
       if (audioRef.current) {
         audioRef.current.pause();
       }
-
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        try {
-          iframeRef.current.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-          iframeRef.current.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
-        } catch (e) {}
-      }
+      // Stop Synth
+      stopHappyBirthdaySynth();
     }
   }, [playing, mounted, musicConfig.youtubeVideoId, musicConfig.customAudioUrl]);
 

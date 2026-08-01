@@ -14,7 +14,7 @@ export function Reasons() {
   const { reasons } = data;
 
   return (
-    <section id="reasons" className="py-24 bg-white relative z-10">
+    <section className="py-24 bg-white relative z-10">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>

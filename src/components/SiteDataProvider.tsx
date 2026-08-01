@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { defaultSiteData } from '../lib/defaultData';
-import { decodeConfigFromUrl } from '../lib/shareUtils';
 
 const SiteDataContext = createContext<any>(null);
 
@@ -9,60 +8,27 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // 1. Check if config parameter exists in URL
-    let urlConfig: any = null;
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const cfgParam = urlParams.get('cfg');
-      if (cfgParam) {
-        urlConfig = decodeConfigFromUrl(cfgParam);
+    try {
+      const stored = localStorage.getItem('siteData');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setData({ ...defaultSiteData, ...parsed });
       }
+    } catch (e) {
+      console.error(e);
     }
-
-    if (urlConfig) {
-      // If shared via URL, prioritize encoded URL parameters
-      setData(prev => ({
-        ...defaultSiteData,
-        ...urlConfig,
-        hero: { ...defaultSiteData.hero, ...(urlConfig.hero || {}) },
-        reasons: { ...defaultSiteData.reasons, ...(urlConfig.reasons || {}) },
-        letter: { ...defaultSiteData.letter, ...(urlConfig.letter || {}) },
-        music: { ...defaultSiteData.music, ...(urlConfig.music || {}) },
-        gallery: urlConfig.gallery || defaultSiteData.gallery
-      }));
-    } else {
-      // 2. Otherwise load from localStorage
-      try {
-        const stored = localStorage.getItem('siteData');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setData({ ...defaultSiteData, ...parsed });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
     setIsLoaded(true);
 
     const fetchLiveSettings = async () => {
-      // Only poll backend if not overriding with explicit URL config
-      if (urlConfig) return;
-
       try {
         const response = await fetch('/api/settings');
         if (response.ok) {
           const liveData = await response.json();
-          if (liveData && !liveData.empty && typeof liveData === 'object' && liveData.hero) {
-            const merged = { ...defaultSiteData, ...liveData };
-            setData(merged);
-            try {
-              localStorage.setItem('siteData', JSON.stringify(merged));
-            } catch (e) {}
-          }
+          setData(liveData);
+          localStorage.setItem('siteData', JSON.stringify(liveData));
         }
       } catch (err) {
-        // Silently fallback
+        // Silently fallback to cached/defaults
       }
     };
 
@@ -76,10 +42,9 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateData = async (newData: any) => {
-    const merged = { ...defaultSiteData, ...newData };
-    setData(merged);
+    setData(newData);
     try {
-      localStorage.setItem('siteData', JSON.stringify(merged));
+      localStorage.setItem('siteData', JSON.stringify(newData));
     } catch (e) {
       console.error(e);
     }
@@ -88,15 +53,15 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: merged })
+        body: JSON.stringify({ data: newData })
       });
       
       const result = await response.json();
-      if (result && result.success) {
+      if (result.success) {
         return { success: true };
       } else {
-        console.warn('Server update warning:', result?.error);
-        return { success: true };
+        alert('Failed to save globally: ' + (result.error || 'Unknown error'));
+        return { success: false, error: result.error };
       }
     } catch (err) {
       return { success: true };

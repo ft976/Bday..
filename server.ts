@@ -6,8 +6,7 @@ import { createServer as createViteServer } from "vite";
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "25mb" }));
 
 // Ensure data directory exists
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -26,14 +25,13 @@ app.get("/api/settings", (req, res) => {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const content = fs.readFileSync(SETTINGS_FILE, "utf-8");
-      if (content && content.trim().length > 0) {
-        return res.json(JSON.parse(content));
-      }
+      return res.json(JSON.parse(content));
     }
   } catch (err) {
     console.error("Error reading settings file:", err);
   }
-  return res.json({ empty: true });
+  // Return null or 404 so client falls back to defaultData
+  res.status(404).json({ error: "No custom settings saved yet" });
 });
 
 app.post("/api/settings", (req, res) => {
@@ -44,24 +42,12 @@ app.post("/api/settings", (req, res) => {
       return res.status(400).json({ success: false, error: "No data provided" });
     }
 
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data), "utf-8");
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2), "utf-8");
     return res.json({ success: true });
   } catch (err: any) {
     console.error("Error saving settings:", err);
-    return res.status(500).json({ success: false, error: err?.message || "Server error saving data" });
+    return res.status(500).json({ success: false, error: err?.message || "Server error" });
   }
-});
-
-// Global error handler for Express (e.g. payload too large)
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err) {
-    console.error("Express middleware error:", err);
-    return res.status(err.status || 500).json({
-      success: false,
-      error: err.message || "Server payload error"
-    });
-  }
-  next();
 });
 
 async function startServer() {

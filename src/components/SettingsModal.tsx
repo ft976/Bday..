@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Settings, X, Upload, Plus, Trash2, Share2, Copy, Check } from 'lucide-react';
 import { useSiteData } from './SiteDataProvider';
-import { generateShareUrl } from '../lib/shareUtils';
 
 export function SettingsModal() {
   const { data, updateData } = useSiteData();
@@ -17,15 +16,13 @@ export function SettingsModal() {
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const isPreDomain = window.location.hostname.includes('ais-pre');
-      const isViewMode = window.location.search.includes('view=') || window.location.search.includes('mode=view') || window.location.search.includes('cfg=');
       const hasEditParam = window.location.search.includes('edit=true') || window.location.hash === '#edit';
-      setIsSharedPage((isPreDomain || isViewMode) && !hasEditParam);
+      setIsSharedPage(isPreDomain && !hasEditParam);
     }
   }, []);
 
   const handleCopyLink = () => {
-    const shareUrl = generateShareUrl(localData);
-    navigator.clipboard.writeText(shareUrl);
+    navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
